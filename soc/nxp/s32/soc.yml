@@ -1,6 +1,11 @@
 family:
 - name: nxp_s32
   series:
+  - name: s32g2
+    socs:
+    - name: s32g274
+      cpuclusters:
+      - name: m7
   - name: s32k1
     socs:
     - name: s32k116
