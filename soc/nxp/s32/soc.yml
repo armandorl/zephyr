@@ -3,7 +3,7 @@ family:
   series:
   - name: s32g2
     socs:
-    - name: s32g274
+    - name: s32g274a
       cpuclusters:
       - name: m7
   - name: s32k1

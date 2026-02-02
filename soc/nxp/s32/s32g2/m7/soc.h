@@ -7,7 +7,7 @@
 #ifndef _NXP_S32_S32G2_M7_SOC_H_
 #define _NXP_S32_S32G2_M7_SOC_H_
 
-#include <S32G274.h>
+#include <S32G274A.h>
 #include <core_cm7.h>
 
 #if defined(CONFIG_CMSIS_RTOS_V2)

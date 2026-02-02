@@ -1,7 +1,7 @@
 # Copyright 2025 NXP
 # SPDX-License-Identifier: Apache-2.0
 
-identifier: s32g274ardb/s32g274/m7
+identifier: s32g274ardb/s32g274a/m7
 name: NXP S32G274ARDB M7
 type: mcu
 arch: arm

@@ -5,7 +5,7 @@
  */
 
 #include <arm/armv7-m.dtsi>
-#include <nxp/nxp_s32g274.dtsi>
+#include <nxp/nxp_s32g274a.dtsi>
 #include <freq.h>
 
 / {

@@ -5,7 +5,7 @@
  */
 
 #include <mem.h>
-#include <dt-bindings/clock/nxp_s32g274_clock.h>
+#include <dt-bindings/clock/nxp_s32g274a_clock.h>
 
 / {
 	soc {

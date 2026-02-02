@@ -6,7 +6,7 @@
 
 #include <zephyr/dt-bindings/gpio/gpio.h>
 #include <zephyr/dt-bindings/input/input-event-codes.h>
-#include "s32g274ardb_s32g274-pinctrl.dtsi"
+#include "s32g274ardb_s32g274a-pinctrl.dtsi"
 
 / {
 	aliases {

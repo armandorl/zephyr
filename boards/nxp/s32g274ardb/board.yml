@@ -3,4 +3,4 @@ board:
   full_name: S32G274ARDB
   vendor: nxp
   socs:
-    - name: s32g274
+    - name: s32g274a

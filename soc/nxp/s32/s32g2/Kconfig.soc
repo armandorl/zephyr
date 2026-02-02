@@ -8,16 +8,16 @@ config SOC_SERIES_S32G2
 config SOC_SERIES
 	default "s32g2" if SOC_SERIES_S32G2
 
-config SOC_S32G274
+config SOC_S32G274A
 	bool
 	select SOC_SERIES_S32G2
 
-config SOC_S32G274_M7
+config SOC_S32G274A_M7
 	bool
-	select SOC_S32G274
+	select SOC_S32G274A
 
 config SOC
-	default "s32g274" if SOC_S32G274
+	default "s32g274a" if SOC_S32G274A
 
 config SOC_PART_NUMBER_S32G274ARDB
 	bool
