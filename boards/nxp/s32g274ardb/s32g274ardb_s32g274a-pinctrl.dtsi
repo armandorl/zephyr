@@ -7,7 +7,7 @@
 #include <nxp/s32/S32G274ARDB-pinctrl.h>
 
 &pinctrl {
-	eirq1_default: eirq1_default {
+	eirq0_default: eirq0_default {
 		group1 {
 			pinmux = <PF3_SIUL1_EIRQ3>, <PF9_SIUL1_EIRQ9>;
 			input-enable;

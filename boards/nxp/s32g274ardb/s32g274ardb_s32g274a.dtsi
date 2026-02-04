@@ -26,17 +26,17 @@
 		compatible = "gpio-leds";
 
 		user_led_red: user_led_red {
-			gpios = <&gpiop 1 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
 			label = "RGBLED0_RED";
 		};
 
 		user_led_green: user_led_green {
-			gpios = <&gpioo 2 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio1 2 GPIO_ACTIVE_HIGH>;
 			label = "RGBLED0_GREEN";
 		};
 
 		user_led_blue: user_led_blue {
-			gpios = <&gpion 10 GPIO_ACTIVE_HIGH>;
+			gpios = <&gpio2 10 GPIO_ACTIVE_HIGH>;
 			label = "RGBLED0_BLUE";
 		};
 	};
@@ -46,36 +46,36 @@
 
 		user_button_0: button_0 {
 			label = "USERSW0";
-			gpios = <&gpiof 3 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio3 3 GPIO_ACTIVE_LOW>;
 			zephyr,code = <INPUT_KEY_0>;
 		};
 
 		user_button_1: button_1 {
 			label = "USERSW1";
-			gpios = <&gpiof 9 GPIO_ACTIVE_LOW>;
+			gpios = <&gpio3 9 GPIO_ACTIVE_LOW>;
 			zephyr,code = <INPUT_KEY_1>;
 		};
 	};
 };
 
-&gpiof {
+&gpio0 {
 	status = "okay";
 };
 
-&gpion {
+&gpio1 {
 	status = "okay";
 };
 
-&gpioo {
+&gpio2 {
 	status = "okay";
 };
 
-&gpiop {
+&gpio3 {
 	status = "okay";
 };
 
-&eirq1 {
-	pinctrl-0 = <&eirq1_default>;
+&eirq0 {
+	pinctrl-0 = <&eirq0_default>;
 	pinctrl-names = "default";
 	status = "okay";
 };

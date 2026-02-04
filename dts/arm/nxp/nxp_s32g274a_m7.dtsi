@@ -268,17 +268,6 @@
 	interrupts = <30 0>;
 };
 
-&eirq2 {
-	interrupts = <211 0>;
-};
-
-&eirq3 {
-	interrupts = <31 0>;
-};
-
-&eirq4 {
-	interrupts = <32 0>;
-};
 
 &lpe_lpuart0 {
 	interrupts = <233 0>;
