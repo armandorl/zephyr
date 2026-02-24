@@ -11,31 +11,15 @@
 	soc {
 		sram0: sram@21000000 {
 			compatible = "mmio-sram";
-			reg = <0x21000000 DT_SIZE_K(512)>;
-		};
-#if 0
-		sram1: sram@21080000 {
-			compatible = "mmio-sram";
-			reg = <0x21080000 DT_SIZE_K(512)>;
+			reg = <0x34000000 DT_SIZE_K(512)>;
 		};
 
-		sram2: sram@21100000 {
-			compatible = "mmio-sram";
-			reg = <0x21100000 DT_SIZE_K(512)>;
-		};
-#endif
 		/* The boot header occupies the first 256bytes */
-		cmram: mram@200000 {
+		cmram: mram@24000000 {
 			compatible = "soc-nv-flash";
-			reg = <0x00200000 DT_SIZE_M(32)>;
-		};
-#if 0
-		cpe_sram: sram@22000000 {
-			compatible = "mmio-sram";
-			reg = <0x22000000 DT_SIZE_M(1)>;
+			reg = <0x24000000 DT_SIZE_M(32)>;
 		};
 
-#endif
 		clock: clock-controller@40030000 {
 			compatible = "nxp,s32-clock";
 			reg = <0x40030000 0x4000>,
@@ -45,6 +29,7 @@
 			#clock-cells = <1>;
 			status = "okay";
 		};
+
 		/* Dummy pinctrl node, filled with pin mux options at board level */
 		pinctrl: pinctrl {
 			compatible = "nxp,s32k5-pinctrl";
@@ -56,12 +41,12 @@
 			reg = <0x40088000 0x4000>;
 		};
 
-		siul2_0: siul2@4009C000 {
+		siul2_0: siul2@4009c000 {
 			reg = <0x4009C000 0x10000>;
 			#address-cells = <1>;
 			#size-cells = <1>;
 
-			eirq0: eirq0@4009C010 {
+			eirq0: eirq0@4009c010 {
 				compatible = "nxp,siul2-eirq";
 				reg = <0x4009C010 0xb4>;
 				#address-cells = <0>;
@@ -70,7 +55,7 @@
 				status = "disabled";
 			};
 
-			gpio0: gpio@4009D702 {
+			gpio0: gpio@4009d702 {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D702 0x02>, <0x4009C240 0x40>;
 				reg-names = "pgpdo", "mscr";
@@ -84,7 +69,7 @@
 				status = "disabled";
 			};
 
-			gpio1: gpio@4009D700 {
+			gpio1: gpio@4009d700 {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D700 0x02>, <0x4009C280 0x40>;
 				reg-names = "pgpdo", "mscr";
@@ -98,7 +83,7 @@
 				status = "disabled";
 			};
 
-			gpio2: gpio@4009D706 {
+			gpio2: gpio@4009d706 {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D706 0x02>, <0x4009C2C0 0x40>;
 				reg-names = "pgpdo", "mscr";
@@ -112,7 +97,7 @@
 				status = "disabled";
 			};
 
-			gpio3: gpio@4009D704 {
+			gpio3: gpio@4009d704 {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D704 0x02>, <0x4009C300 0x40>;
 				reg-names = "pgpdo", "mscr";
@@ -125,7 +110,7 @@
 				status = "disabled";
 			};
 
-			gpio4: gpio@4009D70A {
+			gpio4: gpio@4009d70A {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D70A 0x02>, <0x4009C340 0x40>;
 				reg-names = "pgpdo", "mscr";
@@ -139,7 +124,7 @@
 				status = "disabled";
                         };
 
-			gpio5: gpio@4009D708 {
+			gpio5: gpio@4009d708 {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D708 0x02>, <0x4009C380 0x40>;
 				reg-names = "pgpdo", "mscr";
@@ -153,7 +138,7 @@
 				status = "disabled";
                         };
 
-			gpio6: gpio@4009D70E {
+			gpio6: gpio@4009d70E {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4009D70E 0x02>, <0x4009C3C0 0x18>;
 				reg-names = "pgpdo", "mscr";
@@ -182,7 +167,7 @@
 				status = "disabled";
 			};
 
-			gpio7: gpio@4401170C {
+			gpio7: gpio@4401170c {
 				compatible = "nxp,siul2-gpio";
 				reg = <0x4401170C 0x02>, <0x44010400 0x40>;
 				reg-names = "pgpdo", "mscr";

@@ -2467,3 +2467,15 @@ build_info(zephyr version VALUE ${PROJECT_VERSION_STR})
 build_info(zephyr zephyr-base VALUE ${ZEPHYR_BASE})
 
 yaml_save(NAME build_info)
+if(BOARD STREQUAL "xxs32g274ardb")
+
+  add_custom_command(
+      TARGET zephyr POST_BUILD
+      COMMAND ${PYTHON_EXECUTABLE}
+              ${ZEPHYR_BASE}/scripts/mk_ivt.py
+              ${PROJECT_BINARY_DIR}/zephyr/zephyr.elf
+              ${PROJECT_BINARY_DIR}/zephyr/my_custom_image.img
+      COMMENT "Generating custom IVT image"
+  )
+
+endif()
