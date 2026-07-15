@@ -15,13 +15,13 @@
 		led2 = &user_led_blue;
 		sw0 = &user_button_0;
 		sw1 = &user_button_1;
-		watchdog0 = &swt_startup;
+//		watchdog0 = &swt_startup;
 	};
-
+#if 0
 	chosen {
 		zephyr,canbus = &flexcan0;
 	};
-
+#endif
 	leds {
 		compatible = "gpio-leds";
 
@@ -74,12 +74,16 @@
 	status = "okay";
 };
 
+&linflexd0 {
+	status = "okay";
+};
+
 &eirq0 {
 	pinctrl-0 = <&eirq0_default>;
 	pinctrl-names = "default";
 	status = "okay";
 };
-
+#if 0
 &flexcan0 {
 	pinctrl-0 = <&flexcan0_default>;
 	pinctrl-names = "default";
@@ -88,3 +92,4 @@
 &swt_startup {
 	status = "okay";
 };
+#endif

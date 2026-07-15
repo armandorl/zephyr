@@ -16,5 +16,13 @@
 	chosen {
 		zephyr,sram = &sram0;
 		zephyr,flash = &cmram;
+		zephyr,console = &linflexd0;
+		zephyr,shell-uart = &linflexd0;
 	};
+};
+
+&linflexd0 {
+	pinctrl-0 = <&linflexd0_default>;
+	pinctrl-names = "default";
+	status = "okay";
 };

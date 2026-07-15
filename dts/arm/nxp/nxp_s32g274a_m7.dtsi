@@ -49,7 +49,7 @@
 			compatible = "nxp,s32-sys-timer";
 			reg = <0x405a4000 0x4000>;
 			interrupts = <93 0>;
-			clocks = <&clock NXP_S32_STM0_IPG_CLK>;
+			clocks = <&clock NXP_S32_STM0_CLK>;
 			status = "disabled";
 		};
 
@@ -57,7 +57,7 @@
 			compatible = "nxp,s32-sys-timer";
 			reg = <0x40b98000 0x4000>;
 			interrupts = <94 0>;
-			clocks = <&clock NXP_S32_STM1_IPG_CLK>;
+			clocks = <&clock NXP_S32_STM1_CLK>;
 			status = "disabled";
 		};
 
@@ -65,7 +65,7 @@
 			compatible = "nxp,s32-sys-timer";
 			reg = <0x40b9c000 0x4000>;
 			interrupts = <95 0>;
-			clocks = <&clock NXP_S32_STM2_IPG_CLK>;
+			clocks = <&clock NXP_S32_STM2_CLK>;
 			status = "disabled";
 		};
 
@@ -73,7 +73,7 @@
 			compatible = "nxp,s32-sys-timer";
 			reg = <0x40ba0000 0x4000>;
 			interrupts = <96 0>;
-			clocks = <&clock NXP_S32_STM3_IPG_CLK>;
+			clocks = <&clock NXP_S32_STM3_CLK>;
 			status = "disabled";
 		};
 
@@ -81,7 +81,7 @@
 			compatible = "nxp,pit";
 			reg = <0x405a0000 0x4000>;
 			interrupts = <88 0>;
-			clocks = <&clock NXP_S32_PLTDIV2_CLK>;
+			clocks = <&clock NXP_S32_PIT0_CLK>;
 			max-load-value = <0xffffffff>;
 			status = "disabled";
 			#address-cells = <1>;
@@ -116,7 +116,7 @@
 			compatible = "nxp,pit";
 			reg = <0x40b8c000 0x4000>;
 			interrupts = <89 0>;
-			clocks = <&clock NXP_S32_PLTDIV2_CLK>;
+			clocks = <&clock NXP_S32_PIT1_CLK>;
 			max-load-value = <0xffffffff>;
 			status = "disabled";
 			#address-cells = <1>;
@@ -146,83 +146,12 @@
 				status = "disabled";
 			};
 		};
-
-		pit2: pit@40b90000 {
-			compatible = "nxp,pit";
-			reg = <0x40b90000 0x4000>;
-			interrupts = <90 0>;
-			clocks = <&clock NXP_S32_PLTDIV2_CLK>;
-			max-load-value = <0xffffffff>;
-			status = "disabled";
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			pit2_channel0: pit2_channel@0 {
-				compatible = "nxp,pit-channel";
-				reg = <0>;
-				status = "disabled";
-			};
-
-			pit2_channel1: pit2_channel@1 {
-				compatible = "nxp,pit-channel";
-				reg = <1>;
-				status = "disabled";
-			};
-
-			pit2_channel2: pit2_channel@2 {
-				compatible = "nxp,pit-channel";
-				reg = <2>;
-				status = "disabled";
-			};
-
-			pit2_channel3: pit2_channel@3 {
-				compatible = "nxp,pit-channel";
-				reg = <3>;
-				status = "disabled";
-			};
-		};
-
-		pit3: pit@40b94000 {
-			compatible = "nxp,pit";
-			reg = <0x40b94000 0x4000>;
-			interrupts = <91 0>;
-			clocks = <&clock NXP_S32_PLTDIV2_CLK>;
-			max-load-value = <0xffffffff>;
-			status = "disabled";
-			#address-cells = <1>;
-			#size-cells = <0>;
-
-			pit3_channel0: pit3_channel@0 {
-				compatible = "nxp,pit-channel";
-				reg = <0>;
-				status = "disabled";
-			};
-
-			pit3_channel1: pit3_channel@1 {
-				compatible = "nxp,pit-channel";
-				reg = <1>;
-				status = "disabled";
-			};
-
-			pit3_channel2: pit3_channel@2 {
-				compatible = "nxp,pit-channel";
-				reg = <2>;
-				status = "disabled";
-			};
-
-			pit3_channel3: pit3_channel@3 {
-				compatible = "nxp,pit-channel";
-				reg = <3>;
-				status = "disabled";
-			};
-		};
-
 		/* SWT_0 -> SWT_3 for Cortex-M7_0 -> Cortex-M7_3 */
 		swt0: watchdog@40b18000 {
 			compatible = "nxp,s32-swt";
 			reg = <0x40b18000 0x4000>;
 			interrupts = <28 0>;
-			clocks = <&clock NXP_S32_SWT0_IPG_COUNTER_CLK>;
+			clocks = <&clock NXP_S32_SWT0_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
@@ -231,7 +160,7 @@
 			compatible = "nxp,s32-swt";
 			reg = <0x40b1c000 0x4000>;
 			interrupts = <28 0>;
-			clocks = <&clock NXP_S32_SWT1_IPG_COUNTER_CLK>;
+			clocks = <&clock NXP_S32_SWT1_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
@@ -240,7 +169,7 @@
 			compatible = "nxp,s32-swt";
 			reg = <0x40b20000 0x4000>;
 			interrupts = <28 0>;
-			clocks = <&clock NXP_S32_SWT2_IPG_COUNTER_CLK>;
+			clocks = <&clock NXP_S32_SWT2_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
@@ -249,7 +178,7 @@
 			compatible = "nxp,s32-swt";
 			reg = <0x40b24000 0x4000>;
 			interrupts = <28 0>;
-			clocks = <&clock NXP_S32_SWT3_IPG_COUNTER_CLK>;
+			clocks = <&clock NXP_S32_SWT3_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
@@ -268,11 +197,14 @@
 	interrupts = <30 0>;
 };
 
+&linflexd0 {
+	interrupts = <82 0>;
+};
 
 &lpe_lpuart0 {
 	interrupts = <233 0>;
 };
-
+#if 0
 &lpe_lpuart1 {
 	interrupts = <234 0>;
 };
@@ -500,3 +432,4 @@
 &swt_startup {
 	interrupts = <27 0>;
 };
+#endif

@@ -12,6 +12,10 @@ config NUM_IRQ_PRIO_BITS
     int
     default 4
 
+config FIRC_CLK
+    int
+    default 48000000
+
 config CMSIS_DEVICE_HEADER
     string
     default "S32G274A_M7_COMMON.h"

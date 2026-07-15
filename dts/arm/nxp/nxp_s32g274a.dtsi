@@ -9,15 +9,15 @@
 
 / {
 	soc {
-		sram0: sram@21000000 {
+		sram0: sram@24000000 {
 			compatible = "mmio-sram";
-			reg = <0x34000000 DT_SIZE_K(512)>;
+			reg = <0x24000000 DT_SIZE_K(32)>;
 		};
 
-		/* The boot header occupies the first 256bytes */
-		cmram: mram@24000000 {
+		/* The boot header uses the IVT, we set the code at this location */
+		cmram: mram@00200000 {
 			compatible = "soc-nv-flash";
-			reg = <0x24000000 DT_SIZE_M(32)>;
+			reg = <0x00200000 DT_SIZE_M(2)>;
 		};
 
 		clock: clock-controller@40030000 {
@@ -221,180 +221,22 @@
 			};
 		};
 
+		linflexd0: uart@401C8000 {
+			compatible = "nxp,s32-linflexd";
+			reg = <0x401C8000 0x1000>;
+		        interrupt-parent = <&nvic>;
+			//clocks = <&clock NXP_S32_LIN0_CLK>;
+			clocks = <&clock NXP_S32_LINFLEXD_CLK>;
+			status = "disabled";
+		};
+
 		lpe_lpuart0: uart@42184000 {
 			compatible = "nxp,lpuart";
 			reg = <0x42184000 0x4000>;
-			clocks = <&clock NXP_S32_LPE_LPUART0_CLK>;
+			clocks = <&clock NXP_S32_LINFLEXD_CLK>;
 			status = "disabled";
 		};
-
-		lpe_lpuart1: uart@42188000 {
-			compatible = "nxp,lpuart";
-			reg = <0x42188000 0x4000>;
-			clocks = <&clock NXP_S32_LPE_LPUART1_CLK>;
-			status = "disabled";
-		};
-
-		lpe_lpuart2: uart@4218c000 {
-			compatible = "nxp,lpuart";
-			reg = <0x4218c000 0x4000>;
-			clocks = <&clock NXP_S32_LPE_LPUART2_CLK>;
-			status = "disabled";
-		};
-
-		lpuart0: uart@400e0000 {
-			compatible = "nxp,lpuart";
-			reg = <0x400e0000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART0_CLK>;
-			status = "disabled";
-		};
-
-		lpuart1: uart@400e4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x400e4000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART1_CLK>;
-			status = "disabled";
-		};
-
-		lpuart2: uart@402c8000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402c8000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART2_CLK>;
-			status = "disabled";
-		};
-
-		lpuart3: uart@402cc000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402cc000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART3_CLK>;
-			status = "disabled";
-		};
-
-		lpuart4: uart@402d0000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402d0000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART4_CLK>;
-			status = "disabled";
-		};
-
-		lpuart5: uart@402d4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402d4000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART5_CLK>;
-			status = "disabled";
-		};
-
-		lpuart6: uart@402d8000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402d8000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART6_CLK>;
-			status = "disabled";
-		};
-
-		lpuart7: uart@402dc000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402dc000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART7_CLK>;
-			status = "disabled";
-		};
-
-		lpuart8: uart@402e0000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402e0000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART8_CLK>;
-			status = "disabled";
-		};
-
-		lpuart9: uart@402e4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402e4000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART9_CLK>;
-			status = "disabled";
-		};
-
-		lpuart10: uart@402b8000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402b8000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART10_CLK>;
-			status = "disabled";
-		};
-
-		lpuart11: uart@402bc000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402bc000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART11_CLK>;
-			status = "disabled";
-		};
-
-		lpuart12: uart@402c0000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402c0000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART12_CLK>;
-			status = "disabled";
-		};
-
-		lpuart13: uart@402c4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x402c4000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART13_CLK>;
-			status = "disabled";
-		};
-
-		lpuart14: uart@406cc000 {
-			compatible = "nxp,lpuart";
-			reg = <0x406cc000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART14_CLK>;
-			status = "disabled";
-		};
-
-		lpuart15: uart@406d0000 {
-			compatible = "nxp,lpuart";
-			reg = <0x406d0000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART15_CLK>;
-			status = "disabled";
-		};
-
-		lpuart16: uart@406d4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x406d4000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART16_CLK>;
-			status = "disabled";
-		};
-
-		lpuart17: uart@408c4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x408c4000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART17_CLK>;
-			status = "disabled";
-		};
-
-		lpuart18: uart@408c8000 {
-			compatible = "nxp,lpuart";
-			reg = <0x408c8000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART18_CLK>;
-			status = "disabled";
-		};
-
-		lpuart19: uart@408cc000 {
-			compatible = "nxp,lpuart";
-			reg = <0x408cc000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART19_CLK>;
-			status = "disabled";
-		};
-
-		lpuart20: uart@408d0000 {
-			compatible = "nxp,lpuart";
-			reg = <0x408d0000 0x4000>;
-			clocks = <&clock NXP_S32_LPUART20_CLK>;
-			status = "disabled";
-		};
-
-		lpuart21: uart@406f4000 {
-			compatible = "nxp,lpuart";
-			reg = <0x406f4000 0x4000>;
-			status = "disabled";
-		};
-
+#if 0
 		lpe_flexcan: can@42174000 {
 			compatible = "nxp,flexcan-fd", "nxp,flexcan";
 			reg = <0x42174000 0x4000>;
@@ -834,5 +676,6 @@
 			status = "disabled";
 			clocks = <&clock NXP_S32_CAN_PE_CLK>;
 		};
+#endif
 	};
 };

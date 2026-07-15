@@ -26,9 +26,11 @@ void swt_disable(void)
 {
 	uint32_t reg_val;
 
+#if 0  // TBD: Not sure if needed
 	mc_me_configure_cofb(MCME_SWT_STARTUP_PARTITION_IDX,
 			     MCME_SWT_STARTUP_COFB_IDX, MCME_SWT_STARTUP_REQ);
 
 	reg_val = sys_read32(SWT_STARTUP_CR);
 	sys_write32(reg_val & ~SWT_CR_WEN, SWT_STARTUP_CR);
+#endif
 }
