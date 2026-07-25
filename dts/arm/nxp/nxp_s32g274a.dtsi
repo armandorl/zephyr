@@ -677,5 +677,13 @@
 			clocks = <&clock NXP_S32_CAN_PE_CLK>;
 		};
 #endif
+
+		qspi0: qspi@40134000 {
+			compatible = "nxp,s32-qspi";
+			reg = <0x40134000 0x4000>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			status = "disabled";
+		};
 	};
 };
