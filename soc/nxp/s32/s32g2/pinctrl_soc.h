@@ -16,24 +16,27 @@
 #define SIUL2_MSCR_SSS(v)	FIELD_PREP(SIUL2_MSCR_SSS_MASK, (v))
 #define SIUL2_MSCR_SMC_MASK	BIT(5)
 #define SIUL2_MSCR_SMC(v)	FIELD_PREP(SIUL2_MSCR_SMC_MASK, (v))
+#if 0 /* Not defined for s32g274 */
 #define SIUL2_MSCR_IFE_MASK	BIT(6)
 #define SIUL2_MSCR_IFE(v)	FIELD_PREP(SIUL2_MSCR_IFE_MASK, (v))
 #define SIUL2_MSCR_DSE_MASK	BIT(8)
 #define SIUL2_MSCR_DSE(v)	FIELD_PREP(SIUL2_MSCR_DSE_MASK, (v))
-#define SIUL2_MSCR_PUE_MASK	BIT(10)
+#endif
+#define SIUL2_MSCR_PUE_MASK	BIT(13)
 #define SIUL2_MSCR_PUE(v)	FIELD_PREP(SIUL2_MSCR_PUE_MASK, (v))
-#define SIUL2_MSCR_PUS_MASK	BIT(11)
+#define SIUL2_MSCR_PUS_MASK	BIT(12)
 #define SIUL2_MSCR_PUS(v)	FIELD_PREP(SIUL2_MSCR_PUS_MASK, (v))
-#define SIUL2_MSCR_SRC_MASK	GENMASK(14, 12)
+/* S32G274 slew-rate control uses MSCR bits 14..16. */
+#define SIUL2_MSCR_SRC_MASK	GENMASK(16, 14)
 #define SIUL2_MSCR_SRC(v)	FIELD_PREP(SIUL2_MSCR_SRC_MASK, (v))
-#define SIUL2_MSCR_PKE_PD1_MASK BIT(15)
-#define SIUL2_MSCR_PKE(v)	FIELD_PREP(SIUL2_MSCR_PKE_MASK, (v))
-#define SIUL2_MSCR_PKE_PD2_MASK BIT(16)
-#define SIUL2_MSCR_PKE(v)	FIELD_PREP(SIUL2_MSCR_PKE_MASK, (v))
-#define SIUL2_MSCR_INV_MASK	BIT(17)
-#define SIUL2_MSCR_INV(v)	FIELD_PREP(SIUL2_MSCR_INV_MASK, (v))
+#define SIUL2_MSCR_SRC_ENUM_TO_VAL(idx) \
+	((idx) == 0 ? 0U : (idx) == 1 ? 4U : (idx) == 2 ? 5U : (idx) == 3 ? 6U : 7U)
+#define SIUL2_MSCR_DSE_MASK	0U
+#define SIUL2_MSCR_DSE(v)	0U
 #define SIUL2_MSCR_IBE_MASK	BIT(19)
 #define SIUL2_MSCR_IBE(v)	FIELD_PREP(SIUL2_MSCR_IBE_MASK, (v))
+#define SIUL2_MSCR_ODE_MASK	BIT(20)
+#define SIUL2_MSCR_ODE(v)	FIELD_PREP(SIUL2_MSCR_ODE_MASK, (v))
 #define SIUL2_MSCR_OBE_MASK	BIT(21)
 #define SIUL2_MSCR_OBE(v)	FIELD_PREP(SIUL2_MSCR_OBE_MASK, (v))
 #define SIUL2_MSCR_ICE_MASK	BIT(22)
@@ -50,13 +53,14 @@
 		.idx = NXP_SIUL2_PINMUX_GET_MSCR_IDX(value),                                       \
 		.val = SIUL2_MSCR_SSS(NXP_SIUL2_PINMUX_GET_MSCR_SSS(value)) |                      \
 		       SIUL2_MSCR_OBE(DT_PROP(group, output_enable)) |                             \
+		       SIUL2_MSCR_ODE(DT_PROP_OR(group, drive_open_drain, 0) &&                    \
+				      DT_PROP(group, output_enable)) |                             \
 		       SIUL2_MSCR_IBE(DT_PROP(group, input_enable)) |                              \
 		       SIUL2_MSCR_PUE(DT_PROP(group, bias_pull_up) ||                              \
 				      DT_PROP(group, bias_pull_down)) |                            \
 		       SIUL2_MSCR_PUS(DT_PROP(group, bias_pull_up)) |                              \
-		       SIUL2_MSCR_SRC(DT_ENUM_IDX(group, slew_rate)) |                             \
-		       SIUL2_MSCR_DSE(DT_PROP(group, nxp_drive_strength)) |                        \
-		       SIUL2_MSCR_INV(DT_PROP(group, nxp_invert))                                  \
+		       SIUL2_MSCR_SRC(SIUL2_MSCR_SRC_ENUM_TO_VAL(DT_ENUM_IDX_OR(group,            \
+							    slew_rate, 1)))         \
 	},                                                                                         \
 	.imcr = {                                                                                  \
 		.inst = NXP_SIUL2_PINMUX_GET_IMCR_SIUL2_IDX(value),                                \

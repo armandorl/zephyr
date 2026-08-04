@@ -146,39 +146,66 @@
 				status = "disabled";
 			};
 		};
-		/* SWT_0 -> SWT_3 for Cortex-M7_0 -> Cortex-M7_3 */
-		swt0: watchdog@40b18000 {
+		/* SWT_0 -> SWT_0 for Cortex-M7_0 */
+		swt0: watchdog@40100000 {
 			compatible = "nxp,s32-swt";
-			reg = <0x40b18000 0x4000>;
+			reg = <0x40100000 0x4000>;
 			interrupts = <28 0>;
 			clocks = <&clock NXP_S32_SWT0_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
 
-		swt1: watchdog@40b1c000 {
+		swt1: watchdog@40104000 {
 			compatible = "nxp,s32-swt";
-			reg = <0x40b1c000 0x4000>;
+			reg = <0x40104000 0x4000>;
 			interrupts = <28 0>;
 			clocks = <&clock NXP_S32_SWT1_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
 
-		swt2: watchdog@40b20000 {
+		swt2: watchdog@40108000 {
 			compatible = "nxp,s32-swt";
-			reg = <0x40b20000 0x4000>;
+			reg = <0x40108000 0x4000>;
 			interrupts = <28 0>;
 			clocks = <&clock NXP_S32_SWT2_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};
 
-		swt3: watchdog@40b24000 {
+		swt3: watchdog@4010c000 {
 			compatible = "nxp,s32-swt";
-			reg = <0x40b24000 0x4000>;
+			reg = <0x4010c000 0x4000>;
 			interrupts = <28 0>;
 			clocks = <&clock NXP_S32_SWT3_CLK>;
+			service-mode = "fixed";
+			status = "disabled";
+		};
+
+		swt4: watchdog@40200000 {
+			compatible = "nxp,s32-swt";
+			reg = <0x40200000 0x4000>;
+			interrupts = <28 0>;
+			clocks = <&clock NXP_S32_SWT4_CLK>;
+			service-mode = "fixed";
+			status = "disabled";
+		};
+
+		swt5: watchdog@40204000 {
+			compatible = "nxp,s32-swt";
+			reg = <0x40204000 0x4000>;
+			interrupts = <28 0>;
+			clocks = <&clock NXP_S32_SWT5_CLK>;
+			service-mode = "fixed";
+			status = "disabled";
+		};
+
+		swt6: watchdog@40208000 {
+			compatible = "nxp,s32-swt";
+			reg = <0x40208000 0x4000>;
+			interrupts = <28 0>;
+			clocks = <&clock NXP_S32_SWT6_CLK>;
 			service-mode = "fixed";
 			status = "disabled";
 		};

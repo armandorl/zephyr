@@ -705,8 +705,6 @@ static DEVICE_API(flash, nxp_s32_qspi_api) = {
 
 #define QSPI_MEMORY_CFG(n)							\
 	{									\
-		.memType = QSPI_IP_SERIAL_FLASH,				\
-		.hfConfig = NULL,						\
 		.memSize = DT_INST_PROP(n, size) / 8,				\
 		.pageSize = DT_INST_PROP(n, max_program_buffer_size),		\
 		.writeLut = QSPI_LUT_IDX(QSPI_WRITE_SEQ(n)),			\

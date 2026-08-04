@@ -37,9 +37,12 @@ description: |
   device can be specified in separate child nodes of 'pinctrl'.
 
   In addition to 'pinmux' property, each group can contain other properties such as
-  'bias-pull-up', 'slew-rate', 'nxp-drive-strength', or 'nxp-invert' that will be
-  applied to all the pins defined in 'pinmux' array. To enable the input buffer use
-  'input-enable' and to enable the output buffer use 'output-enable'.
+  'bias-pull-up', 'slew-rate', or 'drive-open-drain' that
+  will be applied to all the pins defined in 'pinmux' array.
+  To enable the input buffer use 'input-enable' and to enable the output buffer
+  use 'output-enable'.
+  The 'drive-open-drain' property enables open-drain mode (MSCR.ODE bit) and is
+  intended to be used with 'output-enable'.
 
   To link the pin configurations with CAN0 device, use pinctrl-N property in the
   device node, where 'N' is the zero-based state index (0 is the default state).
@@ -56,7 +59,6 @@ description: |
     - input and output buffers disabled
     - internal pull not enabled
     - open drain disabled
-    - drive strength disabled
     - slew rate 4 (see description in property below).
 
   Additionally:
@@ -95,6 +97,7 @@ child-binding:
         default: 4
         description: |
           Slew rate control. Reset value is 4.
+          On S32G274, this controls MSCR.SRC field at bits [16:14].
           - For 3.3 V / 1.8 V FAST pads:
             0: FMAX = 208 MHz (at 1.8 V), 166 MHz (at 3.3 V)
             4: FMAX = 166 MHz (at 1.8 V), 150 MHz (at 3.3 V)
@@ -114,14 +117,4 @@ child-binding:
             6: FMAX = 50 MHz
             7: FMAX = 1 MHz
 
-      nxp_drive_strength:
-        type: boolean
-        description: |
-          Enable drive strength for the pin. When set to true, the pin will have
-          increased driving capability (DSE bit set in MSCR register).
 
-      nxp_invert:
-        type: boolean
-        description: |
-          Invert the pin input/output. When set to true, the pin signal is inverted
-          (INV bit set in MSCR register).
