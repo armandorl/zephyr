@@ -225,8 +225,8 @@
 			compatible = "nxp,s32-linflexd";
 			reg = <0x401C8000 0x1000>;
 		        interrupt-parent = <&nvic>;
-			//clocks = <&clock NXP_S32_LIN0_CLK>;
-			clocks = <&clock NXP_S32_LINFLEXD_CLK>;
+			clocks = <&clock NXP_S32_LIN0_CLK>;
+			//clocks = <&clock NXP_S32_LINFLEXD_CLK>;
 			status = "disabled";
 		};
 
