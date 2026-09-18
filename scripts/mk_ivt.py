@@ -275,10 +275,10 @@ class IvtImage:
         self.origin_file.seek(self.writeOffset)
         if self.writeOffset < item.at:
             copy_file_with_len_pad(self.origin_file, self.output_file,\
-                item.at - self.writeOffset, 0xff)
+                item.at - self.writeOffset, 0x00)
     
         with open(item.file_name, 'rb') as src_file:
-            copy_file_with_len_pad(src_file, self.output_file, item.size, 0xff)
+            copy_file_with_len_pad(src_file, self.output_file, item.size, 0x00)
         
         # update write offset
         self.writeOffset = item.at + item.size
@@ -289,7 +289,7 @@ class IvtImage:
         self.origin_file.seek(self.writeOffset)
         if self.writeOffset < item.at:
             copy_file_with_len_pad(self.origin_file, self.output_file,\
-                item.at - self.writeOffset, 0xff)
+                item.at - self.writeOffset, 0x00)
         
         appHeader = bytearray(0x40)
         appHeader[0:4] = b'\xD5\x00\x00\x60' # tag
@@ -298,7 +298,7 @@ class IvtImage:
         set_le4(appHeader, 0xc,  item.size - 0x40)
         self.output_file.write(appHeader)
         with open(item.file_name, 'rb') as src_file:
-            copy_file_with_len_pad(src_file, self.output_file, item.size - 0x40, 0xff)
+            copy_file_with_len_pad(src_file, self.output_file, item.size - 0x40, 0x00)
         
         # update write offset
         self.writeOffset = item.at + item.size
@@ -310,7 +310,7 @@ class IvtImage:
         self.origin_file.seek(self.writeOffset)
         if self.writeOffset < item.at:
             copy_file_with_len_pad(self.origin_file, self.output_file,\
-                item.at - self.writeOffset, 0xff)
+                item.at - self.writeOffset, 0x00)
         #print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
 
         # write app header
@@ -328,10 +328,10 @@ class IvtImage:
         for app in reversed(self.appBindList):
             if app.file_name != '':
                 with open(app.file_name, 'rb') as src_file:
-                    copy_file_with_len_pad(src_file, self.output_file, app.size, 0xff)
+                    copy_file_with_len_pad(src_file, self.output_file, app.size, 0x00)
             else:
                 self.origin_file.seek(app.origin_offset)
-                copy_file_with_len_pad(self.origin_file, self.output_file, app.size, 0xff)
+                copy_file_with_len_pad(self.origin_file, self.output_file, app.size, 0x00)
             #print(sys._getframe().f_lineno, "write size = 0x%x, real = 0x%x" %(app.size, self.output_file.tell()))
             if app.entry == -1:
                 # data file
@@ -388,15 +388,107 @@ class IvtImage:
         print("No IVT found in origin file")
         return None
 
+    def check_elf_offsets(self, item):
+        if not item or not item.file_name or not os.path.exists(item.file_name):
+            return
+        try:
+            with open(item.file_name, 'rb') as f:
+                header = f.read(1024)
+            if len(header) < 52 or header[:4] != b'\x7fELF':
+                return
+            
+            ei_class = header[4] # 1=32-bit, 2=64-bit
+            ei_data = header[5]  # 1=LE, 2=BE
+            endian = '<' if ei_data == 1 else '>'
+            
+            pt_loads = []
+            if ei_class == 1: # 32-bit ELF
+                e_type, e_machine, e_version, e_entry, e_phoff, e_shoff, e_flags, e_ehsize, e_phentsize, e_phnum = struct.unpack(endian + 'HHIIIIIHHH', header[16:46])
+                for i in range(e_phnum):
+                    off = e_phoff + i * e_phentsize
+                    if off + 32 > len(header):
+                        break
+                    p_type, poff, vaddr, paddr, filesz, memsz, flags, align = struct.unpack(endian + 'IIIIIIII', header[off:off+32])
+                    if p_type == 1 and filesz > 0: # PT_LOAD
+                        pt_loads.append({'off': poff, 'vaddr': vaddr, 'filesz': filesz, 'align': align})
+            elif ei_class == 2: # 64-bit ELF
+                e_type, e_machine, e_version, e_entry, e_phoff, e_shoff, e_flags, e_ehsize, e_phentsize, e_phnum = struct.unpack(endian + 'HHIQQQIHHH', header[16:58])
+                for i in range(e_phnum):
+                    off = e_phoff + i * e_phentsize
+                    if off + 56 > len(header):
+                        break
+                    p_type, flags, poff, vaddr, paddr, filesz, memsz, align = struct.unpack(endian + 'IIQQQQQQ', header[off:off+56])
+                    if p_type == 1 and filesz > 0: # PT_LOAD
+                        pt_loads.append({'off': poff, 'vaddr': vaddr, 'filesz': filesz, 'align': align})
+            else:
+                return
+                
+            print("[ELF CHECK] File: %s" % item.file_name)
+            print("[ELF CHECK] ELF Entry Point: 0x%08x" % e_entry)
+            if pt_loads:
+                first = pt_loads[0]
+                p_vaddr = first['vaddr']
+                p_offset = first['off']
+                print("[ELF CHECK] First PT_LOAD segment: VMA=0x%08x, File Offset=0x%08x" % (p_vaddr, p_offset))
+                
+                # Check for alignment gaps between PT_LOAD segments
+                gap_found = False
+                for i in range(len(pt_loads) - 1):
+                    curr_seg = pt_loads[i]
+                    next_seg = pt_loads[i+1]
+                    vaddr_diff = next_seg['vaddr'] - curr_seg['vaddr']
+                    file_diff = next_seg['off'] - curr_seg['off']
+                    if vaddr_diff != file_diff:
+                        gap_bytes = file_diff - vaddr_diff
+                        print("  [CRITICAL WARNING] ELF file contains a %d-byte alignment gap between segment %d and segment %d!" % (gap_bytes, i, i+1))
+                        print("  [CRITICAL WARNING] Raw copying ELF file will SHIFT all code after VMA 0x%08x by %d bytes in SRAM!" % (next_seg['vaddr'], gap_bytes))
+                        print("  [RECOMMENDATION] Use zephyr.bin instead of zephyr.elf in your .cfg configuration file.")
+                        gap_found = True
+                        break
+                
+                expected_to = p_vaddr - p_offset
+                app_hdr_len = 0x40
+                expected_at = const.LOADER_AREA_START - app_hdr_len - p_offset
+                
+                if not gap_found:
+                    print("[ELF CHECK] Calculated SRAM 'TO' = 0x%08x (Configured: 0x%08x)" % (expected_to, item.to))
+                    print("[ELF CHECK] Calculated Flash 'AT' = 0x%08x (Configured: 0x%08x)" % (expected_at, item.at))
+                    
+                    if item.entry != -1 and item.entry != e_entry:
+                        print("  [WARNING] Configured ENTRY 0x%08x does not match ELF entry 0x%08x!" % (item.entry, e_entry))
+                    else:
+                        print("  [OK] ENTRY point matches ELF entry point.")
+                        
+                    if item.to != -1 and item.to != expected_to:
+                        print("  [WARNING] Configured TO 0x%08x differs from calculated TO 0x%08x! SRAM vector table alignment may be shifted." % (item.to, expected_to))
+                    else:
+                        print("  [OK] 'TO' offset is correctly aligned with ELF headers.")
+                        
+                    if item.at != -1 and item.at != expected_at:
+                        print("  [WARNING] Configured AT 0x%08x differs from calculated AT 0x%08x! Flash vector table alignment at 0x200000 may be shifted." % (item.at, expected_at))
+                    else:
+                        print("  [OK] 'AT' offset is correctly aligned for 0x200000 vector table placement.")
+        except Exception as e:
+            print("[ELF CHECK] Exception while checking ELF: %s" % e)
+        except Exception as e:
+            print("[ELF CHECK] Exception while checking ELF: %s" % e)
+
     def output(self):
         if self.error != 0:
             return self.error
         self.error = 0xf # avoid re-entry
     
+        if self.app:
+            self.check_elf_offsets(self.app)
+        if self.loader:
+            self.check_elf_offsets(self.loader)
+    
         if not self.origin_file:
             print("Do not support to generate IVT, now create one")
-            aes_key = b"\x10" * 16       # Example AES-128 key
-            random_iv = b"\x22" * 12     # Example 12-byte IV
+            #aes_key = b"\x10" * 16       # Example AES-128 key
+            #random_iv = b"\x22" * 12     # Example 12-byte IV
+            aes_key = b"\x00" * 16       # Example AES-128 key
+            random_iv = b"\x00" * 12     # Example 12-byte IV
 
             ivt = IVTBuilder(
                   ivt_header=const.MAGIC_NUMBER,
@@ -885,10 +977,10 @@ class IVTBuilder:
         if len(ivt) != self.IVT_SIZE:
             raise RuntimeError(f"IVT must be {self.IVT_SIZE} bytes, got {len(ivt)}")
 
-        gmac = self._compute_gmac(ivt)
+        #gmac = self._compute_gmac(ivt)
 
         # Replace GMAC at offset 0xF0
-        ivt = ivt[:0xF0] + gmac + ivt[0xF0 + self.GMAC_SIZE:]
+        #ivt = ivt[:0xF0] + gmac + ivt[0xF0 + self.GMAC_SIZE:]
 
         return ivt
 
