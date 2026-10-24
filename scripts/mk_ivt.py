@@ -147,7 +147,7 @@ class IvtImage:
 
     def parse_APP_LOADER(self, args):
         self.loader = self.parse_item(args[1:])
-        #print('loader: ' + str(self.loader))
+        print('loader: ' + str(self.loader))
         if self.loader:
             if self.loader.entry != -1 \
                 and self.loader.to != -1 \
@@ -158,7 +158,7 @@ class IvtImage:
 
     def parse_APP(self, args):
         self.app = self.parse_item(args[1:])
-        #print('app: ' + str(self.app))
+        print('app: ' + str(self.app))
         if self.app:
             if self.app.to != -1 and self.app.entry != -1 and self.app.core != -1:
                 return True
@@ -167,8 +167,8 @@ class IvtImage:
 
     def parse_APP_BIND(self, args):
         item = self.parse_item(args[1:])
-        #print('app.bind: ' + str(item))
-        if item and item.to != -1 and item.at == -1:
+        print('app.bind: ' + str(item))
+        if item and item.to != -1 and item.at != -1:
             if item.entry != -1 and item.core != -1:
                 # application file
                 self.appBindList.append(item)
@@ -183,7 +183,7 @@ class IvtImage:
         
     def parse_BIND(self, args):
         item = self.parse_item(args[1:])
-        #print('bind: ' + str(item))
+        print('bind: ' + str(item))
         if item and item.at != -1 \
             and item.core == -1 and item.entry == -1:
             self.bindList.append(item)
@@ -193,7 +193,7 @@ class IvtImage:
         
     def parse_APP_IMG(self, args):
         item = self.parse_item(args[1:])
-        #print('parse_BIND_UBOOT_A: ' + str(item))
+        print('parse_BIND_UBOOT_A: ' + str(item))
         if item and item.at != -1 \
             and item.core == -1:
             self.appImgList.append(item)
@@ -203,7 +203,7 @@ class IvtImage:
     
     def parse_DCD(self, args):
         item = self.parse_item(args[1:])
-        #print('bind: ' + str(item))
+        print('bind: ' + str(item))
         if item and item.at != -1 \
             and item.core == -1 and item.entry == -1:
             self.bindList.append(item)
@@ -214,7 +214,7 @@ class IvtImage:
 
     def parse_FW_IMG(self, args):
         item = self.parse_item(args[1:])
-        #print('bind: ' + str(item))
+        print('bind: ' + str(item))
         if item and item.at != -1 \
             and item.core == -1 and item.entry == -1:
             self.bindList.append(item)
@@ -332,7 +332,7 @@ class IvtImage:
             else:
                 self.origin_file.seek(app.origin_offset)
                 copy_file_with_len_pad(self.origin_file, self.output_file, app.size, 0x00)
-            #print(sys._getframe().f_lineno, "write size = 0x%x, real = 0x%x" %(app.size, self.output_file.tell()))
+            print(sys._getframe().f_lineno, "write size = 0x%x, real = 0x%x" %(app.size, self.output_file.tell()))
             if app.entry == -1:
                 # data file
                 set_le4(binder_table, offset_in_table, 0x55646E62)
@@ -347,18 +347,18 @@ class IvtImage:
             set_le4(binder_table, offset_in_table + 8, app.to)
             set_le4(binder_table, offset_in_table + 0xc, app.length)
             offset_in_table += 0x20
-        #print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
+        print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
         # write binder table
         show_bytes(binder_table)
         print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
         if len(binder_table) < 0x100:
             pad_file(self.output_file, 0x100 - len(binder_table), 0xff)
         self.output_file.write(binder_table)
-        #print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
+        print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
         # write loader
         with open(self.loader.file_name, 'rb') as src_file:
             copy_file_with_len(src_file, self.output_file, self.loader.length)
-        #print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
+        print(sys._getframe().f_lineno, "real = 0x%x" %self.output_file.tell())
         # update write offset
         self.writeOffset = item.at + item.size
         return True
@@ -834,8 +834,77 @@ def parse_size_str(s):
     val = int(v, 0)
     return val * mul
 
+USAGE = """\
+usage: mk_ivt.py <config_file>
+
+The config file has one command per line, words separated by SINGLE spaces.
+Lines starting with '#' and empty lines are ignored. Numbers: decimal or 0x hex.
+Optional attributes are KEYWORD VALUE pairs:
+  TO <addr>     RAM address the image is loaded to
+  ENTRY <addr>  entry point (reset vector / start address)
+  CORE <0|4>    0 = A53, 4 = M7 (selects the boot core in the IVT boot config)
+  AT <offset>   byte offset of the image inside the output file (flash)
+
+General commands
+  OUTPUT <file>        output image (required)
+  ORIGIN <file>        existing IVT image used as a base. If omitted, a new IVT
+                       (M7 boot, no secure boot) is generated as ivt.bin
+  SIZE <n>             pad the output to n bytes (accepts K/M/G, e.g. SIZE 64M)
+  DCD <file> AT <off>      raw file placed at AT, DCD pointer set in the IVT
+  FW_IMG <file> AT <off>   raw file placed at AT, HSE FW pointer set in the IVT
+  BIND <file> AT <off>     raw file copied as-is at AT (no header, no IVT entry)
+
+Application commands (what the BootROM starts)
+  APP <file> TO <addr> ENTRY <addr> CORE <0|4> [AT <off>]
+      Wraps <file> (raw .bin) in a 0x40-byte app header (tag 0x600000D5,
+      start, entry, length) and points the IVT APP pointer to it. This is the
+      image the BootROM boots. Without AT, the offset is taken from ORIGIN's
+      IVT; when no ORIGIN is given you must pass AT (it must be >= 0x100).
+
+  APP.IMG <file> AT <off> [TO <addr> ENTRY <addr>]
+      Places an additional application image at AT that is NOT pointed to by
+      the IVT, so your main app can find and load it itself.
+        - raw .bin: TO and ENTRY are required; a 0x40 app header is written
+          in front of it (same format as APP, so the main app can parse
+          start/entry/length from the header at AT).
+        - IVT-format image (starts with 0x600001D1): the app it contains is
+          extracted and copied (with its header) to AT; TO/ENTRY are read from
+          its header.
+      CORE is not allowed here (it is not stored in the app header).
+
+Loader mode (APP.LOADER)
+  APP.LOADER <file> TO <addr> ENTRY <addr> CORE <0|4> [AT <off>]
+  APP.BIND   <file> TO <addr> AT <ignored> [ENTRY <addr> CORE <0|4>]
+      Use these together only when the BootROM should start a small loader that
+      then copies one or more payloads to RAM. The loader becomes the IVT app,
+      located inside 0x200000-0x400000, followed by a binder table and the
+      payloads. APP.BIND adds a payload: with ENTRY+CORE it is an application,
+      without them it is a data file copied to TO. The original app (from
+      ORIGIN or from an APP line, which must not use AT here) is added as a
+      payload automatically. Plain APP (no APP.LOADER) does not use APP.BIND.
+
+Which one do I need?
+  - Only one app, started by the BootROM:                 APP
+  - BootROM app + another app/blob stored in flash that
+    the first app loads itself:                           APP + APP.IMG
+  - Raw data/blob with no header (calibration, FW):       BIND
+  - BootROM runs a loader that copies several payloads:   APP.LOADER + APP.BIND
+
+Example: main app boots from the IVT, second app stored at 0x400000
+  OUTPUT flash.bin
+  APP zephyr_main.bin TO 0x34100000 ENTRY 0x34100401 CORE 4 AT 0x1000
+  APP.IMG second.bin AT 0x400000 TO 0x34200000 ENTRY 0x34200401
+  SIZE 64M
+In the main app, read the 0x40 header at flash offset 0x400000: word0 = tag
+0x600000D5, word1 = TO, word2 = ENTRY, word3 = payload length; the payload starts
+at 0x400040. Copy it to TO and jump to ENTRY.
+
+Rules: items must not overlap each other or the 0x100-byte IVT, and AT values
+are file offsets (the QSPI flash offset, since IVT_OFFSET is 0).
+"""
+
 def show_usage():
-    print("args: config_file\n")
+    print(USAGE)
 
 def mk_ivt_cmd(argv):
     if (sys.version_info.major < 3):

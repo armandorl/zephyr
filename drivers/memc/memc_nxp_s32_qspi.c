@@ -11,6 +11,8 @@ LOG_MODULE_REGISTER(nxp_s32_qspi_memc, CONFIG_MEMC_LOG_LEVEL);
 
 #include <zephyr/drivers/pinctrl.h>
 #include <zephyr/sys/util.h>
+#include <zephyr/sys/printk.h>
+#include <zephyr/sys/barrier.h>
 #include <zephyr/dt-bindings/qspi/nxp-s32-qspi.h>
 
 #include <soc.h>
@@ -61,6 +63,12 @@ static int memc_nxp_s32_qspi_init(const struct device *dev)
 	}
 
 	status = Qspi_Ip_ControllerInit(data->instance, config->controller_cfg);
+	printk("memc_nxp_s32_qspi: post-ControllerInit DLLCRA=0x%08X DLLCRB=0x%08X MCR=0x%08X\n",
+	       config->base->DLLCRA, config->base->DLLCRB, config->base->MCR);
+	/* Debug: drain posted writes so a pending bus error is taken here */
+	barrier_dsync_fence_full();
+	printk("memc_nxp_s32_qspi: writes drained OK\n");
+	barrier_dsync_fence_full();
 	if (status != STATUS_QSPI_IP_SUCCESS) {
 		LOG_ERR("Fail to initialize QSPI controller %d (%d)",
 			data->instance, status);

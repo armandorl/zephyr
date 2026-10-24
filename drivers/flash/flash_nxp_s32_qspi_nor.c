@@ -101,6 +101,10 @@ enum {
 #if QSPI_ANY_INST_HAS_PROP_EQ(writeoc, 3)
 	QSPI_SEQ_PP_1_4_4,
 #endif
+    /* Add OPI sequences here */
+    QSPI_SEQ_OPI_RDSR,
+    QSPI_SEQ_OPI_RDID,
+    QSPI_SEQ_OPI_FAST_READ,
 };
 
 #if !defined(CONFIG_FLASH_NXP_S32_QSPI_SFDP_RUNTIME)
@@ -266,6 +270,18 @@ static const Qspi_Ip_InstrOpType nxp_s32_qspi_lut[][QSPI_LUT_ENTRY_SIZE] = {
 		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_STOP, QSPI_IP_LUT_SEQ_END, QSPI_IP_LUT_SEQ_END),
 	},
 #endif
+	[QSPI_SEQ_OPI_RDID] = {
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_CMD,   QSPI_IP_LUT_PADS_8, 0x9F9F),
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_READ,  QSPI_IP_LUT_PADS_8, 3U),
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_STOP,  QSPI_IP_LUT_SEQ_END, QSPI_IP_LUT_SEQ_END),
+	},
+	[QSPI_SEQ_OPI_FAST_READ] = {
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_CMD,   QSPI_IP_LUT_PADS_8, 0xEE),
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_ADDR,  QSPI_IP_LUT_PADS_8, 32U),
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_DUMMY, QSPI_IP_LUT_PADS_8, 20U),
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_READ,  QSPI_IP_LUT_PADS_8, 8U),
+		QSPI_LUT_OP(QSPI_IP_LUT_INSTR_STOP,  QSPI_IP_LUT_SEQ_END, QSPI_IP_LUT_SEQ_END),
+	},
 };
 #endif /* !defined(CONFIG_FLASH_NXP_S32_QSPI_SFDP_RUNTIME) */
 
@@ -565,22 +581,25 @@ static int nxp_s32_qspi_init(const struct device *dev)
 #endif
 
 	/* Init memory device connected to the bus */
+	printk("Initializing memory device for instance %d\n", data->instance);
 	status = Qspi_Ip_Init(data->instance,
 			(const Qspi_Ip_MemoryConfigType *)memory_cfg,
 			(const Qspi_Ip_MemoryConnectionType *)&data->memory_conn_cfg);
 	if (status != STATUS_QSPI_IP_SUCCESS) {
-		LOG_ERR("Fail to init memory device %d (%d)", data->instance, status);
+		printk("Fail to init memory device %d (%d)\n", data->instance, status);
 		return -EIO;
 	}
+	printk("Memory device initialized for instance %d\n", data->instance);
 
 
 #if !defined(CONFIG_FLASH_NXP_S32_QSPI_SFDP_RUNTIME)
 	uint8_t jedec_id[JESD216_READ_ID_LEN];
 
+	printk("Reading JEDEC ID for instance %d\n", data->instance);
 	/* Verify connectivity by reading the device ID */
 	ret = nxp_s32_qspi_read_id(dev, jedec_id);
 	if (ret != 0) {
-		LOG_ERR("JEDEC ID read failed (%d)", ret);
+		printk("JEDEC ID read failed (%d)\n", ret);
 		return -ENODEV;
 	}
 
@@ -588,21 +607,48 @@ static int nxp_s32_qspi_init(const struct device *dev)
 	 * Check the memory device ID against the one configured from devicetree
 	 * to verify we are talking to the correct device.
 	 */
-	if (memcmp(jedec_id, memory_cfg->readIdSettings.readIdExpected, sizeof(jedec_id)) != 0) {
-		LOG_ERR("Device id %02x %02x %02x does not match config %02x %02x %02x",
+	printk("Read JEDEC ID: %02x %02x %02x Expected %02x %02x %02x\n", jedec_id[0], jedec_id[1], jedec_id[2],
+		memory_cfg->readIdSettings.readIdExpected[0],
+		memory_cfg->readIdSettings.readIdExpected[1],
+		memory_cfg->readIdSettings.readIdExpected[2]);
+	if (memcmp(jedec_id, memory_cfg->readIdSettings.readIdExpected, JESD216_READ_ID_LEN) != 0) {
+		printk("Device id %02x %02x %02x does not match config %02x %02x %02x",
 			jedec_id[0], jedec_id[1], jedec_id[2],
 			memory_cfg->readIdSettings.readIdExpected[0],
 			memory_cfg->readIdSettings.readIdExpected[1],
 			memory_cfg->readIdSettings.readIdExpected[2]);
 		return -EINVAL;
+#if 0
+			ret = nxp_s32_qspi_read_id_opi(dev, jedec_id);
+			if (ret != 0) {
+				printk("JEDEC ID read failed (%d)\n", ret);
+				return -ENODEV;
+			}
+
+			/*
+			* Check the memory device ID against the one configured from devicetree
+			* to verify we are talking to the correct device.
+			*/
+			if (memcmp(jedec_id, memory_cfg->readIdSettings.readIdExpected,
+				   JESD216_READ_ID_LEN) != 0) {
+				printk("Device id %02x %02x %02x does not match config %02x %02x %02x\n",
+					jedec_id[0], jedec_id[1], jedec_id[2],
+					memory_cfg->readIdSettings.readIdExpected[0],
+					memory_cfg->readIdSettings.readIdExpected[1],
+					memory_cfg->readIdSettings.readIdExpected[2]);
+				return -EINVAL;
+			}
+#endif
 	}
 
+	printk("Setting quad mode: %d\n", config->quad_mode);
 	ret = nxp_s32_qspi_set_quad_mode(dev, config->quad_mode);
 	if (ret < 0) {
+		printk("Failed to set quad mode for instance %d (%d)\n", data->instance, ret);
 		return ret;
 	}
 #endif /* !CONFIG_FLASH_NXP_S32_QSPI_SFDP_RUNTIME */
-
+	printk("Initialization complete for instance %d\n", data->instance);
 	return ret;
 }
 
@@ -633,7 +679,12 @@ static DEVICE_API(flash, nxp_s32_qspi_api) = {
 		.readIdSize = DT_INST_PROP_LEN(n, jedec_id),			\
 		.readIdExpected = DT_INST_PROP(n, jedec_id),			\
 	}
-
+#define QSPI_READ_ID_OPI_CFG(n)						\
+	{									\
+		.readIdLut = QSPI_LUT_IDX(QSPI_SEQ_OPI_RDID),			\
+		.readIdSize = DT_INST_PROP_LEN(n, jedec_id),			\
+		.readIdExpected = DT_INST_PROP(n, jedec_id),			\
+	}
 #define QSPI_MEMORY_CONN_CFG(n)							\
 	{									\
 		.connectionType = (Qspi_Ip_ConnectionType)DT_INST_REG_ADDR(n),	\
@@ -720,6 +771,7 @@ static DEVICE_API(flash, nxp_s32_qspi_api) = {
 		COND_CODE_1(CONFIG_FLASH_NXP_S32_QSPI_SFDP_RUNTIME, (), (	\
 			.readIdSettings = QSPI_READ_ID_CFG(n),)			\
 		)								\
+		.readIdOpiSettings = QSPI_READ_ID_OPI_CFG(n),				\
 		.suspendSettings = {						\
 			.eraseSuspendLut = QSPI_IP_LUT_INVALID,			\
 			.eraseResumeLut = QSPI_IP_LUT_INVALID,			\

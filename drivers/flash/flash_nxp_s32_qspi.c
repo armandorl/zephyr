@@ -283,4 +283,22 @@ int nxp_s32_qspi_read_id(const struct device *dev, uint8_t *id)
 
 	return ret;
 }
+int nxp_s32_qspi_read_id_opi(const struct device *dev, uint8_t *id)
+{
+	struct nxp_s32_qspi_data *data = dev->data;
+	Qspi_Ip_StatusType status;
+	int ret = 0;
+
+	nxp_s32_qspi_lock(dev);
+
+	status = Qspi_Ip_ReadIdOpi(data->instance, id);
+	if (status != STATUS_QSPI_IP_SUCCESS) {
+		LOG_ERR("Failed to read device ID (%d)", status);
+		ret = -EIO;
+	}
+
+	nxp_s32_qspi_unlock(dev);
+
+	return ret;
+}
 #endif /* CONFIG_FLASH_JESD216_API || !CONFIG_FLASH_NXP_S32_QSPI_SFDP_RUNTIME */

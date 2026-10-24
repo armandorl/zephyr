@@ -188,6 +188,25 @@ static inline void z_arm_floating_point_init(void)
 
 extern FUNC_NORETURN void z_cstart(void);
 
+extern void debug_wait(unsigned int delay);
+
+void my_checkpoint(unsigned int delay)
+{
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+    debug_wait(delay);
+}
 /**
  *
  * @brief Prepare to and run C code
@@ -197,8 +216,9 @@ extern FUNC_NORETURN void z_cstart(void);
  */
 FUNC_NORETURN void z_prep_c(void)
 {
+	my_checkpoint(10);
 	soc_prep_hook();
-
+	my_checkpoint(20);
 	relocate_vector_table();
 #if defined(CONFIG_CPU_HAS_FPU)
 	z_arm_floating_point_init();
@@ -214,10 +234,11 @@ FUNC_NORETURN void z_prep_c(void)
 #if CONFIG_ARCH_CACHE
 	arch_cache_init();
 #endif
-
+	my_checkpoint(90);
 #ifdef CONFIG_NULL_POINTER_EXCEPTION_DETECTION_DWT
 	z_arm_debug_enable_null_pointer_detection();
 #endif
+    my_checkpoint(100);
 	z_cstart();
 	CODE_UNREACHABLE;
 }

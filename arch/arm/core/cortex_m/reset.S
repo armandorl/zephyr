@@ -21,6 +21,7 @@ _ASM_FILE_PROLOGUE
 
 GTEXT(z_arm_reset)
 GTEXT(arch_early_memset)
+GTEXT(debug_wait)
 GDATA(z_interrupt_stacks)
 GDATA(z_main_stack)
 #if defined(CONFIG_DEBUG_THREAD_INFO)
@@ -147,12 +148,104 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
     ldr r0, =z_main_stack + CONFIG_MAIN_STACK_SIZE
     msr msp, r0
 
+    /*
+     * Serial boot only loads the image contents; the rest of the image RAM
+     * (.bss, noinit, stacks) was never written. Initialize it with aligned
+     * 64-bit stores first. Uses no stack, so it is safe over the stacks.
+     */
+    ldr     r0, =__bss_start
+    ldr     r1, =0x34602000     /* covers the FIP copies: 0x342FBA40 and 0x34401000, each + 0x200000 */
+    adds    r1, r1, #7
+    bic     r1, r1, #7
+    movs    r2, #0
+    movs    r3, #0
+sram_init_loop:
+    strd    r2, r3, [r0], #8
+    cmp     r0, r1
+    blo     sram_init_loop
+
+    /* SHARED_RAM region (0x34000000, 4 KB) is also never written by serial boot */
+    ldr     r0, =0x34000000
+    ldr     r1, =0x34001000
+    movs    r2, #0
+    movs    r3, #0
+shared_ram_init_loop:
+    strd    r2, r3, [r0], #8
+    cmp     r0, r1
+    blo     shared_ram_init_loop
+
+    /* Debug: disable the write buffer (ACTLR.DISDEFWBUF) so bus faults are precise */
+    ldr     r0, =0xE000E008
+    ldr     r1, [r0]
+    orr     r1, r1, #2
+    str     r1, [r0]
+    dsb
+    isb
+#if 1
+    /* Disable the watchdog */
+    ldr     r0, =0x40100000
+    ldr     r1, [r0]
+    bic     r1, r1, #1
+    str     r1, [r0]
+
+    /* GPIO IOMUX setup */
+    ldr     r0, =0x4009C2E4      // GPIO Output
+    ldr     r1, =0x00210000
+    str     r1, [r0]
+
+    ldr     r0, =0x4009C2E8      // GPIO Input
+    ldr     r1, =0x00090000
+    str     r1, [r0]
+
+#endif
+#if 0
+blink_loop:
+    /* Red */
+    ldr r0, =0x4009D304
+    movs r1, #0x00
+    strb r1, [r0]
+    ldr r0, =0x4009D305
+    movs r1, #0x01
+    strb r1, [r0]
+    ldr r0, =0x4009C3BC
+    movs r1, #0x01
+    strb r1, [r0]
+    bl delay
+
+    /* Green */
+    ldr r0, =0x4009D304
+    movs r1, #0x01
+    strb r1, [r0]
+    ldr r0, =0x4009C3BC
+    movs r1, #0x00
+    strb r1, [r0]
+    bl delay
+
+    /* Blue */
+    ldr r0, =0x4009C3BC
+    movs r1, #0x01
+    strb r1, [r0]
+    ldr r0, =0x4009D305
+    movs r1, #0x00
+    strb r1, [r0]
+    bl delay
+
+    b blink_loop
+
+delay:
+    ldr r2, =0x00200000   /* ~2M iterations: visible blink at boot clock speed */
+1:
+    subs r2, r2, #1
+    bne 1b
+    bx lr
+#endif
     /* Note: Make sure that variables like z_sys_post_kernel
      *       are set after the call to arch_pm_s2ram_resume
      *       to avoid any issues with suspend/resume path.
      *       Refer issue #83660 for more details.
      */
 #if defined(CONFIG_DEBUG_THREAD_INFO)
+#error "Debug thread enabled"
     /* Clear z_sys_post_kernel flag for RTOS aware debuggers */
     movs.n r0, #0
     ldr r1, =z_sys_post_kernel
@@ -160,24 +253,27 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 #endif /* CONFIG_DEBUG_THREAD_INFO */
 
 #if defined(CONFIG_SOC_RESET_HOOK)
+#error "reset hook enabled"
     bl soc_reset_hook
 #endif
 
 #if defined(CONFIG_INIT_ARCH_HW_AT_BOOT)
+#error "Init hw at boot"
 #if defined(CONFIG_CPU_HAS_ARM_MPU)
+#error "arm  mpu enabled"
     /* Disable MPU */
     movs.n r0, #0
     ldr r1, =_SCS_MPU_CTRL
     str r0, [r1]
     dsb
 #endif /* CONFIG_CPU_HAS_ARM_MPU */
-
     /* Initialize core architecture registers and system blocks */
     bl z_arm_init_arch_hw_at_boot
 #endif /* CONFIG_INIT_ARCH_HW_AT_BOOT */
 
     /* lock interrupts: will get unlocked when switch to main task */
 #if defined(CONFIG_ARMV6_M_ARMV8_M_BASELINE)
+#error "armv8"
     cpsid i
 #elif defined(CONFIG_ARMV7_M_ARMV8_M_MAINLINE)
     movs.n r0, #_EXC_IRQ_DEFAULT_PRIO
@@ -187,6 +283,7 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
 #endif
 
 #ifdef CONFIG_WDOG_INIT
+#error "Watchdog init"
     /* board-specific watchdog initialization is necessary */
     bl z_arm_watchdog_init
 #endif
@@ -224,10 +321,48 @@ SECTION_SUBSEC_FUNC(TEXT,_reset_section,__start)
      * after the ISB instruction execute using the new stack pointer.
      */
     isb
-
     /*
      * 'bl' jumps the furthest of the branch instructions that are
      * supported on all platforms. So it is used when jumping to z_prep_c
      * (even though we do not intend to return).
      */
     bl z_prep_c
+
+.thumb_func
+debug_wait:
+    push    {r4-r6, lr}
+    ldr     r5, =0x4009D32A      // Output GPIO
+    ldr     r6, =0x4009D529      // Input GPIO
+
+    movs    r1, #0               // Low
+    movs    r2, #1               // High
+
+loop:
+    // Exit if input is active
+    ldrb    r4, [r6]
+    cbz     r4, exit
+
+    // High
+    strb    r2, [r5]
+
+    mov     r3, r0
+delay1:
+    subs    r3, r3, #1
+    bne     delay1
+
+    // Check input again
+    ldrb    r4, [r6]
+    cbz    r4, exit
+
+    // Low
+    strb    r1, [r5]
+
+    mov     r3, r0
+delay2:
+    subs    r3, r3, #1
+    bne     delay2
+
+    b       loop
+
+exit:
+    pop     {r4-r6, pc}
