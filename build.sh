@@ -53,3 +53,4 @@ cp zeus_fip.bin  /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/linux/arch/arm64/boot/dts/freescale/s32g274a-zeus-flasher.dtb /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/linux/arch/arm64/boot/Image /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/zephyrproject/zephyr/build/zeus_ivt_image.qspi /mnt/c/tftpboot/
+cp /media/armandorl/ubuntu/s32g2/rootfs/uRamdisk /mnt/c/tftpboot/
