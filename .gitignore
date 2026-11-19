@@ -10,7 +10,11 @@
 *.swp
 *.swo
 *~
-
+*.bin
+*.sig
+*.sigblob
+zeus_payload.sig.hdr
+*.qspi
 dcd.bin
 # Emacs
 \#*\#

@@ -1,3 +1,6 @@
+#!/bin/bash
+set -e
+
 #python3 -m venv ~/zephyrproject/.venv
 #Activate the virtual environment:
 #source ~/zephyrproject/.venv/bin/activate
@@ -12,6 +15,7 @@
 #west build -p always -b s32g274ardb_zeus/s32g274a/m7 -d build-zeus-boards project/zeus -DCONFIG_DEBUG=y
 west build -p always -b zeus/s32g274a/m7 -d build-zeus-boards project/zeus -DCONFIG_DEBUG=y
 python3 scripts/dcd_gen.py
+source sign_fip.sh
 python3 scripts/mk_ivt.py scripts/zeus_flash_image.cfg
 #echo "Sleep 5 activated!!!!!!!!!!!!!"
 #sleep 5
@@ -42,6 +46,8 @@ dd if=/media/armandorl/ubuntu/s32g2/zephyrproject/zephyr/build/zeus_ivt_image.qs
    skip=$((0x400000)) \
    count=$((0x200000))
 
+
+
 FLASHDIR=/mnt/c/Users/bardu/Documents/Programming/
 cp salida.qspi ${FLASHDIR}
 cp salida.qspi /mnt/c/tftpboot/
@@ -50,7 +56,10 @@ cp build-zeus-boards/zephyr/zephyr.elf /mnt/c/tftpboot/
 cp zeus_serial_boot.bin  /mnt/c/tftpboot/
 cp build-zeus-boards/zephyr/zephyr.bin /mnt/c/tftpboot/
 cp zeus_fip.bin  /mnt/c/tftpboot/
+cp zeus_payload.sigblob /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/linux/arch/arm64/boot/dts/freescale/s32g274a-zeus-flasher.dtb /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/linux/arch/arm64/boot/Image /mnt/c/tftpboot/
+# Compressed image
+cp /media/armandorl/ubuntu/s32g2/linux/arch/arm64/boot/uImage /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/zephyrproject/zephyr/build/zeus_ivt_image.qspi /mnt/c/tftpboot/
 cp /media/armandorl/ubuntu/s32g2/rootfs/uRamdisk /mnt/c/tftpboot/
